@@ -1,0 +1,6 @@
+[submodule "external/sam3"]
+	path = external/sam3
+	url = https://github.com/AdamShih27/sam3.git
+[submodule "external/sam3d"]
+	path = external/sam3d
+	url = https://github.com/AdamShih27/sam-3d-objects.git
