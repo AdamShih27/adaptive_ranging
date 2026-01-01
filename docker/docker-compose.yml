@@ -1,0 +1,77 @@
+# =============================================================================
+# USV Adaptive Ranging System - Docker Compose
+# =============================================================================
+
+services:
+  ranging:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    image: usv-adaptive-ranging:latest
+    container_name: usv_ranging
+    
+    # GPU support
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    
+    # Mount volumes for development
+    volumes:
+      - ../src:/app/src                    # Live code reload
+      - ../configs:/app/configs
+      - ../scripts:/app/scripts
+      - ../data:/app/data                  # Dataset mount point
+      - ../outputs:/app/outputs            # Results output
+      - ~/.cache/huggingface:/root/.cache/huggingface  # HF model cache
+    
+    # Interactive mode
+    stdin_open: true
+    tty: true
+    
+    # Environment
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - PYTHONPATH=/app/src
+    
+    # Shared memory for PyTorch DataLoader
+    shm_size: '16gb'
+    
+    # Network for potential ROS2 integration
+    network_mode: host
+
+  # Optional: Jupyter notebook server for experiments
+  notebook:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    image: usv-adaptive-ranging:latest
+    container_name: usv_notebook
+    
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    
+    volumes:
+      - ../:/app/workspace
+      - ~/.cache/huggingface:/root/.cache/huggingface
+    
+    ports:
+      - "8888:8888"
+    
+    shm_size: '16gb'
+    
+    command: >
+      jupyter notebook 
+      --ip=0.0.0.0 
+      --port=8888 
+      --no-browser 
+      --allow-root 
+      --NotebookApp.token=''
